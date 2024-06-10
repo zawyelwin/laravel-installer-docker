@@ -16,16 +16,14 @@ To pull the Docker image from Docker Hub, run:
 docker pull zylwin/laravel-installer:latest
 ```
 
-To create a new Laravel project, run:
+
+Create a docker volume for composer cache
 
 ```sh
-
 docker volume create composer_cache
-
-docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer new example-app
 ```
 
-If you want the interactive installer for adding stater kits, testing frameworks and etc, run:
+To create a new Laravel project, run:
 
 ```sh
 docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer new
