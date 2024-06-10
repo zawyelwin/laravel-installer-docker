@@ -1,0 +1,9 @@
+.git
+.gitignore
+.github
+.DS_Store
+.vscode
+.dockerignore
+Dockerfile
+*.md
+.env*
