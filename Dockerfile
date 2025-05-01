@@ -36,8 +36,4 @@ ENV PATH=/root/.composer/vendor/bin:$PATH
 RUN rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Set the entrypoint to laravel
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Set entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["laravel"]
