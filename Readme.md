@@ -44,7 +44,7 @@ echo 'alias laravel="docker run --rm -it -v $(pwd):/app -v composer_cache:/compo
 
 source ~/.zshrc
 
-laravel new
+laravel
 ```
 
 ### Build the Docker Image
