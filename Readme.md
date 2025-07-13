@@ -56,7 +56,7 @@ git clone https://github.com/zawyelwin/laravel-installer-docker.git
 
 cd laravel-installer-docker
 
-docker build --build-arg INSTALLER_VERSION=$INSTALLER_VERSION -t <your-dockerhub-username>/laravel-installer .
+docker buildx build --platform linux/amd64,linux/arm64 --build-arg INSTALLER_VERSION=$INSTALLER_VERSION -t <your-dockerhub-username>/laravel-installer .
 ```
 
 # License
