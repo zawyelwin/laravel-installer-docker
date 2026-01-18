@@ -40,20 +40,26 @@ alias laravel='docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/ca
 To make sure this is always available, add this to your shell configuration file in your home directory, such as `~/.zshrc` or `~/.bashrc`, and then restart your shell.
 
 ```sh
-echo 'alias laravel="docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer"' >> ~/.zshrc
+> echo 'alias laravel="docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer"' >> ~/.zshrc
 
-source ~/.zshrc
+> echo 'alias php="laravel php"' >> ~/.zshrc
 
-laravel new
+> source ~/.zshrc
+
+> laravel new
 ```
+
+Now you can use `laravel` command to create a new Laravel project and artisan commands will be available as `php artisan` to create models, migrations, controllers etc. Happy Coding!
 
 ### Using with Laravel Sail
 
 [Laravel Sail](https://laravel.com/docs/sail) comes pre-installed as a dev dependency in new Laravel projects. Run `sail:install` to publish the `compose.yaml` and configure your Docker services:
 
 ```sh
+cd myapp
+
 # Publish compose.yaml and configure your Docker services
-laravel artisan sail:install
+php artisan sail:install
 
 # Start the development environment
 ./vendor/bin/sail up
@@ -82,4 +88,7 @@ Contributions are welcome! If you have any improvements or bug fixes, please fee
 # Acknowledgements
 
 - [Laravel Installer](https://github.com/laravel/installer)
--   Some documentation referenced from the [Laravel Documentation](https://laravel.com/docs).
+- Documentation referenced from the [Laravel Documentation](https://laravel.com/docs).
+- [Laravel Sail](https://laravel.com/docs/sail) 
+- [docked](https://github.com/rails/docked)
+
