@@ -26,7 +26,7 @@ docker volume create composer_cache
 To create a new Laravel project, run:
 
 ```sh
-docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer new
+docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer new myapp
 ```
 
 ### Configuring a Shell Alias
@@ -34,17 +34,29 @@ docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/lara
 You may wish to configure a shell alias to execute commands more easily:
 
 ```sh
-alias laravel='docker run --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer'
+alias laravel='docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer'
 ```
 
 To make sure this is always available, add this to your shell configuration file in your home directory, such as `~/.zshrc` or `~/.bashrc`, and then restart your shell.
 
 ```sh
-echo 'alias laravel="docker run --rm -it -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer"' >> ~/.zshrc
+echo 'alias laravel="docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer"' >> ~/.zshrc
 
 source ~/.zshrc
 
 laravel new
+```
+
+### Using with Laravel Sail
+
+[Laravel Sail](https://laravel.com/docs/sail) comes pre-installed as a dev dependency in new Laravel projects. Run `sail:install` to publish the `compose.yaml` and configure your Docker services:
+
+```sh
+# Publish compose.yaml and configure your Docker services
+laravel artisan sail:install
+
+# Start the development environment
+./vendor/bin/sail up
 ```
 
 ### Build the Docker Image

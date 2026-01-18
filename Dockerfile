@@ -1,7 +1,7 @@
 FROM php:8.4-cli-alpine
 
 # Laravel installer version
-ARG INSTALLER_VERSION="5.14.2"
+ARG INSTALLER_VERSION="5.24.0"
 
 # Set working directory
 WORKDIR /app
@@ -15,7 +15,7 @@ RUN apk --update --no-cache add \
     git \
     nodejs \
     npm \
-    && docker-php-ext-install pdo_mysql pdo_pgsql
+    && docker-php-ext-install pdo_mysql pdo_pgsql pcntl
 
 # Install composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -35,5 +35,12 @@ ENV PATH=/root/.composer/vendor/bin:$PATH
 # Clean up
 RUN rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
-# Set the entrypoint to laravel
-ENTRYPOINT ["laravel"]
+# Create an entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Set the entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+# Default command
+CMD ["laravel"]
