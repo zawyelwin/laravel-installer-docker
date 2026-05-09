@@ -1,7 +1,7 @@
 FROM php:8.4-cli-alpine
 
 # Laravel installer version
-ARG INSTALLER_VERSION="5.24.6"
+ARG INSTALLER_VERSION="5.27.0"
 
 # Set working directory
 WORKDIR /app

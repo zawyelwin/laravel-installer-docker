@@ -4,7 +4,7 @@
 IMAGE_NAME ?= zylwin/laravel-installer
 DOCKERFILE ?= Dockerfile
 CONTEXT ?= .
-INSTALLER_VERSION ?= "5.24.6"
+INSTALLER_VERSION ?= "5.27.0"
 
 
 help: ## Shows the help for a subcommand
