@@ -1,0 +1,63 @@
+# This workflow updates the README badges and handles release notes
+name: Release and Documentation
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag and version info
+        id: get_info
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          
+          INSTALLER_VERSION=$(grep -o 'INSTALLER_VERSION ?= "[^"]*"' Makefile | sed 's/INSTALLER_VERSION ?= "\(.*\)"/\1/')
+          echo "installer_version=$INSTALLER_VERSION" >> $GITHUB_OUTPUT
+          
+          # Get previous tag for changelog
+          git fetch --tags
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "Generating changelog from $PREVIOUS_TAG to $TAG"
+            CHANGELOG=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges | head -20)
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.get_info.outputs.tag }}
+          body: |
+            ## Docker Image
+            
+            **Image:** `zylwin/laravel-installer:${{ steps.get_info.outputs.tag }}`
+            
+            **Laravel Installer Version:** ${{ steps.get_info.outputs.installer_version }}
+            
+            ### Changes
+            ${{ steps.get_info.outputs.changelog }}
+            
+            ### Usage
+            
+            ```bash
+            docker pull zylwin/laravel-installer:${{ steps.get_info.outputs.tag }}
+            docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer:${{ steps.get_info.outputs.tag }} new myapp
+            ```
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

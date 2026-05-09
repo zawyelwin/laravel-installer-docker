@@ -1,0 +1,85 @@
+# This workflow validates the Dockerfile and entrypoint script
+name: Lint and Validate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  hadolint:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          verbose: true
+          failure-threshold: warning
+
+  shellcheck:
+    name: Shell Script Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          format: gcc
+        env:
+          SHELLCHECK_OPTS: -e SC2086 -e SC2006
+
+  dockerfile-validator:
+    name: Dockerfile Structure Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Dockerfile exists and has required components
+        run: |
+          # Check Dockerfile exists
+          if [ ! -f Dockerfile ]; then
+            echo "❌ Dockerfile not found"
+            exit 1
+          fi
+          
+          # Check for required directives
+          if ! grep -q "FROM php:" Dockerfile; then
+            echo "❌ Dockerfile should use PHP base image"
+            exit 1
+          fi
+          
+          if ! grep -q "ARG INSTALLER_VERSION" Dockerfile; then
+            echo "❌ Dockerfile missing INSTALLER_VERSION build arg"
+            exit 1
+          fi
+          
+          if ! grep -q "ENTRYPOINT" Dockerfile; then
+            echo "❌ Dockerfile missing ENTRYPOINT directive"
+            exit 1
+          fi
+          
+          # Check entrypoint script exists
+          if [ ! -f docker-entrypoint.sh ]; then
+            echo "❌ docker-entrypoint.sh not found"
+            exit 1
+          fi
+          
+          if [ ! -x docker-entrypoint.sh ]; then
+            echo "❌ docker-entrypoint.sh is not executable"
+            exit 1
+          fi
+          
+          echo "✅ All validations passed"

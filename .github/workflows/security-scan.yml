@@ -1,0 +1,61 @@
+# This workflow performs security scanning on the Docker image
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run security scan twice a month (1st and 15th at 00:00 UTC)
+    - cron: '0 0 1,15 * *'
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract installer version
+        id: version
+        run: |
+          INSTALLER_VERSION=$(grep -o 'INSTALLER_VERSION ?= "[^"]*"' Makefile | sed 's/INSTALLER_VERSION ?= "\(.*\)"/\1/')
+          echo "version=$INSTALLER_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: laravel-installer:scan
+          build-args: |
+            INSTALLER_VERSION=${{ steps.version.outputs.version }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'laravel-installer:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Trivy in table format for PR comment
+        if: github.event_name == 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'laravel-installer:scan'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
