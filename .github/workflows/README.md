@@ -50,17 +50,7 @@ To enable automatic pushing of Docker images to Docker Hub, you need to configur
 - Runs ShellCheck for shell script validation
 - Validates Dockerfile structure and entrypoint script
 
-### 3. Security Scan (`security-scan.yml`)
-
-**Triggers:** Push to main/master, pull requests, daily cron
-
-**What it does:**
-- Builds the Docker image
-- Scans with Trivy for vulnerabilities (CRITICAL and HIGH severity)
-- Uploads results to GitHub Security tab
-- Runs daily to catch newly discovered vulnerabilities
-
-### 4. Release (`release.yml`)
+### 3. Release (`release.yml`)
 
 **Triggers:** Tag push (v*)
 
@@ -76,7 +66,6 @@ Add these badges to your README.md:
 ```markdown
 [![Docker Build](https://github.com/zawyelwin/laravel-installer-docker/actions/workflows/docker-build.yml/badge.svg)](https://github.com/zawyelwin/laravel-installer-docker/actions/workflows/docker-build.yml)
 [![Lint](https://github.com/zawyelwin/laravel-installer-docker/actions/workflows/lint.yml/badge.svg)](https://github.com/zawyelwin/laravel-installer-docker/actions/workflows/lint.yml)
-[![Security Scan](https://github.com/zawyelwin/laravel-installer-docker/actions/workflows/security-scan.yml/badge.svg)](https://github.com/zawyelwin/laravel-installer-docker/actions/workflows/security-scan.yml)
 ```
 
 ## Updating the Laravel Installer Version
@@ -111,8 +100,3 @@ act pull_request
 ### Multi-platform builds fail
 - The workflows use QEMU emulation which may be slow
 - Build times are typically 5-15 minutes for multi-platform builds
-
-### Security scan finds vulnerabilities
-- Review the Trivy scan results in the GitHub Security tab
-- Update base image or dependencies as needed
-- Some vulnerabilities may be in upstream PHP/Alpine packages

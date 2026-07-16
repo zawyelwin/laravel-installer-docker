@@ -4,7 +4,9 @@
 IMAGE_NAME ?= zylwin/laravel-installer
 DOCKERFILE ?= Dockerfile
 CONTEXT ?= .
-INSTALLER_VERSION ?= "5.27.0"
+INSTALLER_VERSION ?= "5.28.0"
+PLATFORMS ?= linux/amd64,linux/arm64
+BUILDER ?= laravel-installer-builder
 
 
 help: ## Shows the help for a subcommand
@@ -13,13 +15,17 @@ help: ## Shows the help for a subcommand
 prep:
 	@docker info > /dev/null || (echo "$(RED)Docker daemon is not running, please start docker"; exit 1)
 
-build: ## Build container images for laravel installer with given tags
-	docker build --build-arg INSTALLER_VERSION=$(INSTALLER_VERSION) -t $(IMAGE_NAME):$(INSTALLER_VERSION) -f $(DOCKERFILE) $(CONTEXT)
-	docker build --build-arg INSTALLER_VERSION=$(INSTALLER_VERSION) -t $(IMAGE_NAME):latest -f $(DOCKERFILE) $(CONTEXT)
+build: prep ## Build a local single-arch image for testing
+	docker build --build-arg INSTALLER_VERSION=$(INSTALLER_VERSION) -t $(IMAGE_NAME):$(INSTALLER_VERSION) -t $(IMAGE_NAME):latest -f $(DOCKERFILE) $(CONTEXT)
 
-push: ## Pusg container images to docker hub
-	docker push $(IMAGE_NAME):$(INSTALLER_VERSION)
-	docker push $(IMAGE_NAME):latest
+builder: prep ## Create and select the buildx builder for multi-arch builds
+	@docker buildx inspect $(BUILDER) > /dev/null 2>&1 || docker buildx create --name $(BUILDER) --driver docker-container
+	@docker buildx use $(BUILDER)
+
+push: builder ## Build and push multi-arch images (amd64 + arm64) to docker hub
+	docker buildx build --platform $(PLATFORMS) --build-arg INSTALLER_VERSION=$(INSTALLER_VERSION) \
+		-t $(IMAGE_NAME):$(INSTALLER_VERSION) -t $(IMAGE_NAME):latest \
+		-f $(DOCKERFILE) --push $(CONTEXT)
 
 
-.PHONY: build push
+.PHONY: build builder push
