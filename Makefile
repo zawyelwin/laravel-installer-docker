@@ -4,7 +4,7 @@
 IMAGE_NAME ?= zylwin/laravel-installer
 DOCKERFILE ?= Dockerfile
 CONTEXT ?= .
-INSTALLER_VERSION ?= "5.28.0"
+INSTALLER_VERSION ?= "5.31.0"
 PLATFORMS ?= linux/amd64,linux/arm64
 BUILDER ?= laravel-installer-builder
 
