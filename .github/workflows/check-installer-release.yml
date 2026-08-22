@@ -1,0 +1,68 @@
+# This workflow checks daily for a new laravel/installer release
+# and opens a PR bumping the pinned version. Merging that PR to main
+# triggers docker-build.yml, which publishes the multi-arch image
+# (linux/amd64 + linux/arm64) to Docker Hub.
+name: Check Laravel Installer Release
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Get latest laravel/installer release
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(gh api repos/laravel/installer/releases/latest --jq '.tag_name')
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Latest upstream release: $VERSION"
+
+      - name: Get current pinned version
+        id: current
+        run: |
+          VERSION=$(grep -o 'INSTALLER_VERSION ?= "[^"]*"' Makefile | sed 's/INSTALLER_VERSION ?= "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current pinned version: $VERSION"
+
+      - name: Bump version in Dockerfile and Makefile
+        if: steps.latest.outputs.version != steps.current.outputs.version
+        run: |
+          NEW="${{ steps.latest.outputs.version }}"
+          OLD="${{ steps.current.outputs.version }}"
+          sed -i "s/ARG INSTALLER_VERSION=\"$OLD\"/ARG INSTALLER_VERSION=\"$NEW\"/" Dockerfile
+          sed -i "s/INSTALLER_VERSION ?= \"$OLD\"/INSTALLER_VERSION ?= \"$NEW\"/" Makefile
+
+      - name: Create pull request
+        if: steps.latest.outputs.version != steps.current.outputs.version
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'feat: update Laravel Installer to v${{ steps.latest.outputs.version }}'
+          title: 'feat: update Laravel Installer to v${{ steps.latest.outputs.version }}'
+          body: |
+            Updates Laravel Installer from `v${{ steps.current.outputs.version }}` to `v${{ steps.latest.outputs.version }}`.
+
+            Upstream release notes: https://github.com/laravel/installer/releases/tag/v${{ steps.latest.outputs.version }}
+
+            Merging this PR triggers the Docker Build and Push workflow, which
+            publishes `zylwin/laravel-installer` for `linux/amd64` and `linux/arm64`
+            to Docker Hub with the `${{ steps.latest.outputs.version }}` and `latest` tags.
+
+            ---
+            *This PR was created automatically by the Check Laravel Installer Release workflow.*
+          branch: update-installer/v${{ steps.latest.outputs.version }}
+          delete-branch: true
+          labels: dependencies
