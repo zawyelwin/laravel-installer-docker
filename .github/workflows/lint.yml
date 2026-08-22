@@ -17,11 +17,12 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Run Hadolint
-        uses: hadolint/hadolint-action@v3.3.0
+        uses: hadolint/hadolint-action@v3.4.0
         with:
           dockerfile: Dockerfile
           verbose: true
           failure-threshold: warning
+          ignore: DL3018 # DL3018 (pin apk package versions) is ignored
 
   shellcheck:
     name: Shell Script Lint
@@ -32,7 +33,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@2.0.0
         with:
           scandir: '.'
           format: gcc
