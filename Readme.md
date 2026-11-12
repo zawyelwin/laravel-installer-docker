@@ -26,7 +26,7 @@ docker volume create composer_cache
 To create a new Laravel project, run:
 
 ```sh
-docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer new myapp
+docker run -it --rm -v "$(pwd)":/app -v composer_cache:/composer/cache zylwin/laravel-installer new myapp
 ```
 
 ### Configuring a Shell Alias
@@ -34,22 +34,32 @@ docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/lara
 You may wish to configure a shell alias to execute commands more easily:
 
 ```sh
-alias laravel='docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer'
+alias laravel='docker run -it --rm -v "$(pwd)":/app -v composer_cache:/composer/cache zylwin/laravel-installer'
+alias artisan='laravel artisan'
 ```
 
-To make sure this is always available, add this to your shell configuration file in your home directory, such as `~/.zshrc` or `~/.bashrc`, and then restart your shell.
+Keep the single quotes: they stop `$(pwd)` from being expanded when the alias is defined, so it mounts the folder you are in each time you run the command.
+
+To make sure this is always available, add the aliases to your shell configuration file in your home directory, such as `~/.zshrc` or `~/.bashrc`, and then reload your shell:
 
 ```sh
-> echo 'alias laravel="docker run -it --rm -v $(pwd):/app -v composer_cache:/composer/cache zylwin/laravel-installer"' >> ~/.zshrc
+cat >> ~/.zshrc <<'EOF'
+alias laravel='docker run -it --rm -v "$(pwd)":/app -v composer_cache:/composer/cache zylwin/laravel-installer'
+alias artisan='laravel artisan'
+EOF
 
-> echo 'alias php="laravel php"' >> ~/.zshrc
+source ~/.zshrc
 
-> source ~/.zshrc
-
-> laravel new
+laravel new
 ```
 
-Now you can use `laravel` command to create a new Laravel project and artisan commands will be available as `php artisan` to create models, migrations, controllers etc. Happy Coding!
+Now you can use the `laravel` command to create a new Laravel project, and run artisan commands from inside the project folder as `artisan` to create models, migrations, controllers etc. Happy Coding!
+
+```sh
+cd myapp
+artisan make:model Post -m
+laravel composer require laravel/sanctum
+```
 
 ### Using with Laravel Sail
 
@@ -59,7 +69,7 @@ Now you can use `laravel` command to create a new Laravel project and artisan co
 cd myapp
 
 # Publish compose.yaml and configure your Docker services
-php artisan sail:install
+artisan sail:install
 
 # Start the development environment
 ./vendor/bin/sail up
